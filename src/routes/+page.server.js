@@ -15,19 +15,12 @@ const turndownService = new turndown()
 
 
 export const actions = {
-	// login: async ({ request, cookies }) => {
-	// 	const data = await request.formData()
-	// 	let jwt = data.get("jwt")
-	// },
-	default: async ({ request, cookies }) => {
-		console.log("in request")
+	verify: async ({ request, cookies }) => {
 		const data = await request.formData()
-		let body = data.get("body")
 		let jwt = data.get("jwt")
 		console.log(jwt)
-		console.log(Date.now())
 		const ticket = await client.verifyIdToken({
-			idToken: data.get("jwt"),
+			idToken: jwt,
 			audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
 			// Or, if multiple clients access the backend:
 			//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
@@ -35,9 +28,12 @@ export const actions = {
 		const payload = ticket.getPayload();
 		let sub = payload["sub"]
 		cookies.set("sub", sub)
-		cookies.set("jwt", jwt)
-		console.log({ body })
-		if (!body) {
+	},
+	submit: async ({ request, cookies }) => {
+		const data = await request.formData()
+		let body = data.get("body")
+		let sub = cookies.get("sub")
+		if (!sub) {
 			return
 		}
 		let dir = `static/git/${sub}`
@@ -54,15 +50,15 @@ export const actions = {
 	}
 }
 
-export function load({ params, cookies }) {
+export function load({ params, url, cookies }) {
 	let body = ""
 	let sub = cookies.get("sub")
-	let jwt = cookies.get("jwt")
-	console.log(jwt)
 	let dir = `static/git/${sub}`
+	let host = url.host
+	let protocol = url.protocol
 	try {
 		body = fs.readFileSync(`${dir}/${filepath}`).toString()
 
 	} catch (e) { }
-	return { day, body, sub, jwt }
+	return { day, body, sub, host, protocol }
 }

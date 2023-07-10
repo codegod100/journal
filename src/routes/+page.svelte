@@ -15,14 +15,12 @@
 		menubar: false,
 	};
 
-	let jwt = data.jwt;
-
 	async function handleCredentialResponse(response) {
 		console.log("Encoded JWT ID token: " + response.credential);
-		jwt = response.credential;
+		let jwt = response.credential;
 		let body = new FormData();
 		body.set("jwt", jwt);
-		await fetch("/", {
+		await fetch("?/verify", {
 			method: "POST",
 			body,
 		});
@@ -50,15 +48,13 @@
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
 </svelte:head>
 
-{#if !jwt}
+{#if !data.sub}
 	<div id="google" />
 {:else}
-	<form method="POST">
+	<form method="POST" action="?/submit">
 		<div>
 			{data.day}
-			{#if data.sub}
-				| Git clone url: {globalThis.location}git/{data.sub}/.git
-			{/if}
+			| Git clone url: {data.protocol}//{data.host}/git/{data.sub}/.git
 		</div>
 		<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
 		<!-- <textarea
@@ -68,7 +64,6 @@
 		value={data.body}
 		placeholder="body"
 	/> -->
-		<input type="hidden" name="jwt" value={jwt} />
 		<input type="hidden" name="body" value={data.body} />
 		<input type="submit" />
 	</form>
