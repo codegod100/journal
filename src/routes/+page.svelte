@@ -13,12 +13,12 @@
 		branding: false,
 		menubar: false,
 	};
-	let jwt;
+
+	let jwt = data.jwt;
 
 	function handleCredentialResponse(response) {
 		console.log("Encoded JWT ID token: " + response.credential);
 		jwt = response.credential;
-		localStorage["jwt"] = jwt;
 	}
 
 	onMount(async () => {
@@ -27,16 +27,13 @@
 			client_id: PUBLIC_CLIENT_ID,
 			callback: handleCredentialResponse,
 		});
-		// google.accounts.id.renderButton(
-		// 	document.getElementById("buttonDiv"),
-		// 	{ theme: "outline", size: "large" } // customization attributes
-		// );
-		let stored = localStorage["jwt"];
-		if (!stored) {
-			google.accounts.id.prompt(); // also display the One Tap dialog
-		} else {
-			jwt = stored;
-		}
+
+		google.accounts.id.renderButton(
+			document.getElementById("google"),
+			{ theme: "outline", size: "large" } // customization attributes
+		);
+
+		// google.accounts.id.prompt(); // also display the One Tap dialog
 	});
 </script>
 
@@ -44,19 +41,26 @@
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
 </svelte:head>
 
-<form method="POST">
-	<div>
-		{data.day} | Git clone url: {globalThis.location}git/{data.sub}/.git
-	</div>
-	<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
-	<!-- <textarea
+{#if !jwt}
+	<div id="google" />
+{:else}
+	<form method="POST">
+		<div>
+			{data.day}
+			{#if data.sub}
+				| Git clone url: {globalThis.location}git/{data.sub}/.git
+			{/if}
+		</div>
+		<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
+		<!-- <textarea
 		cols="60"
 		rows="10"
 		name="body"
 		value={data.body}
 		placeholder="body"
 	/> -->
-	<input type="hidden" name="jwt" value={jwt} />
-	<input type="hidden" name="body" value={data.body} />
-	<input type="submit" />
-</form>
+		<input type="hidden" name="jwt" value={jwt} />
+		<input type="hidden" name="body" value={data.body} />
+		<input type="submit" />
+	</form>
+{/if}

@@ -18,7 +18,8 @@ export const actions = {
 	default: async ({ request, cookies }) => {
 		const data = await request.formData()
 		let body = data.get("body")
-		console.log(data.get("jwt"))
+		let jwt = data.get("jwt")
+		console.log(jwt)
 		const ticket = await client.verifyIdToken({
 			idToken: data.get("jwt"),
 			audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
@@ -26,9 +27,9 @@ export const actions = {
 			//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
 		});
 		const payload = ticket.getPayload();
-		console.log(payload)
 		let sub = payload["sub"]
 		cookies.set("sub", sub)
+		cookies.set("jwt", jwt)
 		let dir = `static/git/${sub}`
 		await git.init({ fs, dir })
 		fs.writeFileSync(`${dir}/${filepath}`, body)
@@ -46,10 +47,12 @@ export const actions = {
 export function load({ params, cookies }) {
 	let body = ""
 	let sub = cookies.get("sub")
+	let jwt = cookies.get("jwt")
+	console.log(jwt)
 	let dir = `static/git/${sub}`
 	try {
 		body = fs.readFileSync(`${dir}/${filepath}`).toString()
 
 	} catch (e) { }
-	return { day, body, sub }
+	return { day, body, sub, jwt }
 }
