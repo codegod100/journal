@@ -3,6 +3,7 @@
 	import Editor from "@tinymce/tinymce-svelte";
 	import { onMount, tick } from "svelte";
 	import { PUBLIC_CLIENT_ID } from "$env/static/public";
+	import { invalidateAll } from "$app/navigation";
 	let conf = {
 		plugins: "advlist lists link",
 		toolbar:
@@ -16,9 +17,17 @@
 
 	let jwt = data.jwt;
 
-	function handleCredentialResponse(response) {
+	async function handleCredentialResponse(response) {
 		console.log("Encoded JWT ID token: " + response.credential);
 		jwt = response.credential;
+		let body = new FormData();
+		body.set("jwt", jwt);
+		await fetch("/", {
+			method: "POST",
+			body,
+		});
+
+		invalidateAll();
 	}
 
 	onMount(async () => {

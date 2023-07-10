@@ -15,11 +15,17 @@ const turndownService = new turndown()
 
 
 export const actions = {
+	// login: async ({ request, cookies }) => {
+	// 	const data = await request.formData()
+	// 	let jwt = data.get("jwt")
+	// },
 	default: async ({ request, cookies }) => {
+		console.log("in request")
 		const data = await request.formData()
 		let body = data.get("body")
 		let jwt = data.get("jwt")
 		console.log(jwt)
+		console.log(Date.now())
 		const ticket = await client.verifyIdToken({
 			idToken: data.get("jwt"),
 			audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
@@ -30,6 +36,10 @@ export const actions = {
 		let sub = payload["sub"]
 		cookies.set("sub", sub)
 		cookies.set("jwt", jwt)
+		console.log({ body })
+		if (!body) {
+			return
+		}
 		let dir = `static/git/${sub}`
 		await git.init({ fs, dir })
 		fs.writeFileSync(`${dir}/${filepath}`, body)
