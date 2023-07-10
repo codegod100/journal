@@ -13,29 +13,41 @@ const filepath = day + ".html"
 const markdownPath = day + ".md"
 const turndownService = new turndown()
 
+const verify = async (jwt) => {
+	const ticket = await client.verifyIdToken({
+		idToken: jwt,
+		audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+		// Or, if multiple clients access the backend:
+		//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+	});
+	const payload = ticket.getPayload();
+	let sub = payload["sub"]
+	return sub
+}
 
 export const actions = {
 	verify: async ({ request, cookies }) => {
 		const data = await request.formData()
 		let jwt = data.get("jwt")
 		console.log(jwt)
-		const ticket = await client.verifyIdToken({
-			idToken: jwt,
-			audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
-			// Or, if multiple clients access the backend:
-			//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-		});
-		const payload = ticket.getPayload();
-		let sub = payload["sub"]
+		let sub = await verify(jwt)
+		cookies.set("jwt", jwt)
 		cookies.set("sub", sub)
 	},
 	submit: async ({ request, cookies }) => {
 		const data = await request.formData()
 		let body = data.get("body")
 		let sub = cookies.get("sub")
-		if (!sub) {
+		let jwt = cookies.get("jwt")
+		try {
+			await verify(jwt)
+
+		} catch (e) {
+			console.error(e)
+			cookies.delete("jwt")
 			return
 		}
+
 		let dir = `static/git/${sub}`
 		await git.init({ fs, dir })
 		fs.writeFileSync(`${dir}/${filepath}`, body)
@@ -53,6 +65,7 @@ export const actions = {
 export function load({ params, url, cookies }) {
 	let body = ""
 	let sub = cookies.get("sub")
+	let jwt = cookies.get("jwt")
 	let dir = `static/git/${sub}`
 	let host = url.host
 	let protocol = url.protocol
@@ -60,5 +73,5 @@ export function load({ params, url, cookies }) {
 		body = fs.readFileSync(`${dir}/${filepath}`).toString()
 
 	} catch (e) { }
-	return { day, body, sub, host, protocol }
+	return { day, body, sub, host, protocol, jwt }
 }

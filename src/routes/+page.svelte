@@ -48,7 +48,7 @@
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
 </svelte:head>
 
-{#if !data.sub}
+{#if !data.sub || !data.jwt}
 	<div id="google" />
 {:else}
 	<form method="POST" action="?/submit">
