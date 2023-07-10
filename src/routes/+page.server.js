@@ -8,7 +8,6 @@ import { PUBLIC_CLIENT_ID } from "$env/static/public"
 const client = new OAuth2Client(PUBLIC_CLIENT_ID);
 
 
-const dir = "static/sample"
 const day = dayjs().format("YYYY-MM-DD")
 const filepath = day + ".html"
 const markdownPath = day + ".md"
@@ -16,8 +15,7 @@ const turndownService = new turndown()
 
 
 export const actions = {
-	default: async ({ request }) => {
-		await git.init({ fs, dir })
+	default: async ({ request, cookies }) => {
 		const data = await request.formData()
 		let body = data.get("body")
 		console.log(data.get("jwt"))
@@ -29,6 +27,10 @@ export const actions = {
 		});
 		const payload = ticket.getPayload();
 		console.log(payload)
+		let sub = payload["sub"]
+		cookies.set("sub", sub)
+		let dir = `static/git/${sub}`
+		await git.init({ fs, dir })
 		fs.writeFileSync(`${dir}/${filepath}`, body)
 		const markdown = turndownService.turndown(body)
 		console.log(markdown)
@@ -41,11 +43,13 @@ export const actions = {
 	}
 }
 
-export function load({ params }) {
+export function load({ params, cookies }) {
 	let body = ""
+	let sub = cookies.get("sub")
+	let dir = `static/git/${sub}`
 	try {
 		body = fs.readFileSync(`${dir}/${filepath}`).toString()
 
 	} catch (e) { }
-	return { day, body }
+	return { day, body, sub }
 }

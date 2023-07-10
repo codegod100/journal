@@ -45,7 +45,9 @@
 </svelte:head>
 
 <form method="POST">
-	<div>{data.day}</div>
+	<div>
+		{data.day} | Git clone url: {globalThis.location}git/{data.sub}/.git
+	</div>
 	<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
 	<!-- <textarea
 		cols="60"
