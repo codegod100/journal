@@ -61,6 +61,7 @@ export const actions = {
 		execSync("git update-server-info", { cwd: `${dir}` })
 		execSync(`rm -fr ${dir}.git`)
 		execSync(`git clone --bare ${dir} ${dir}.git`)
+		execSync("git update-server-info", { cwd: `${dir}.git` })
 	}
 }
 
