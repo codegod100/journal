@@ -48,7 +48,7 @@ export const actions = {
 			return
 		}
 
-		let dir = `static/git/${sub}`
+		let dir = `build/client/git/${sub}`
 		await git.init({ fs, dir })
 		fs.writeFileSync(`${dir}/${filepath}`, body)
 		const markdown = turndownService.turndown(body)
@@ -67,7 +67,7 @@ export function load({ params, url, cookies }) {
 	let body = ""
 	let sub = cookies.get("sub")
 	let jwt = cookies.get("jwt")
-	let dir = `static/git/${sub}`
+	let dir = `build/client/git/${sub}`
 	let host = url.host
 	let protocol = url.protocol
 	try {
