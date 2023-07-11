@@ -1,12 +1,7 @@
-import fs from "fs"
-import git from "isomorphic-git"
-import { execSync } from "child_process"
 import dayjs from "dayjs"
 import turndown from "turndown"
-import { OAuth2Client } from "google-auth-library"
 import { PUBLIC_CLIENT_ID } from "$env/static/public"
 import { CLIENT_SECRET } from "$env/static/private"
-import { format } from "path"
 import { Octokit } from "@octokit/core";
 
 function utoa(str) {
@@ -23,17 +18,7 @@ const filepath = day + ".html"
 const markdownPath = day + ".md"
 const turndownService = new turndown()
 
-const verify = async (jwt) => {
-	const ticket = await client.verifyIdToken({
-		idToken: jwt,
-		audience: PUBLIC_CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
-		// Or, if multiple clients access the backend:
-		//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-	});
-	const payload = ticket.getPayload();
-	let sub = payload["sub"]
-	return sub
-}
+
 
 const writeFile = async ({ token, path, content }) => {
 	const octokit = new Octokit({
@@ -97,11 +82,18 @@ export const actions = {
 	}
 }
 
-const exchange = async (code) => {
+const exchange = async ({ code, refresh }) => {
 	let form = new FormData()
 	form.set("client_id", PUBLIC_CLIENT_ID)
 	form.set("client_secret", CLIENT_SECRET)
-	form.set("code", code)
+	if (code) {
+		form.set("code", code)
+
+	}
+	if (refresh) {
+		form.set("grant_type", "refresh_token")
+		form.set("refresh_token", refresh)
+	}
 
 	const resp = await fetch("https://github.com/login/oauth/access_token", {
 		method: "POST",
@@ -119,7 +111,9 @@ const exchange = async (code) => {
 
 export async function load({ params, url, cookies }) {
 	let code = url.searchParams.get("code")
-	let token = await exchange(code)
+	let token = await exchange({ code })
+	console.log(token)
+	cookies.set("refresh", token.refresh_token)
 	let host = url.host
 
 	let access_token = cookies.get("access_token")
@@ -166,5 +160,5 @@ export async function load({ params, url, cookies }) {
 
 
 
-	return { day, body, code, host }
+	return { day, body, code, host, access_token }
 }

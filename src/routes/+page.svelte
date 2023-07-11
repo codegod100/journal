@@ -1,7 +1,7 @@
 <script>
 	export let data;
 	import Editor from "@tinymce/tinymce-svelte";
-	import { PUBLIC_CLIENT_ID } from "$env/static/public";
+	import { PUBLIC_CLIENT_ID, PUBLIC_APP_NAME } from "$env/static/public";
 	let conf = {
 		plugins: "advlist lists link",
 		toolbar:
@@ -14,11 +14,11 @@
 	};
 </script>
 
-<a
-	href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}&redirect_uri=http://{data.host}"
-	>Login with GitHub</a
->
-{data.code}
+{#if !data.access_token}
+	<a href="https://github.com/apps/{PUBLIC_APP_NAME}/installations/new"
+		>Login with GitHub</a
+	>
+{/if}
 
 <form method="POST" action="?/submit">
 	<div>
