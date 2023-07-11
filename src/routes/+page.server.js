@@ -5,7 +5,17 @@ import dayjs from "dayjs"
 import turndown from "turndown"
 import { OAuth2Client } from "google-auth-library"
 import { PUBLIC_CLIENT_ID } from "$env/static/public"
-const client = new OAuth2Client(PUBLIC_CLIENT_ID);
+import { CLIENT_SECRET } from "$env/static/private"
+import { format } from "path"
+import { Octokit } from "@octokit/core";
+
+function utoa(str) {
+	return btoa(unescape(encodeURIComponent(str)));
+}
+// Decode
+function atou(str) {
+	return decodeURIComponent(escape(atob(str)));
+}
 
 
 const day = dayjs().format("YYYY-MM-DD")
@@ -25,56 +35,136 @@ const verify = async (jwt) => {
 	return sub
 }
 
+const writeFile = async ({ token, path, content }) => {
+	const octokit = new Octokit({
+		auth: token
+	})
+
+	let user = await octokit.request('GET /user', {
+		headers: {
+			'X-GitHub-Api-Version': '2022-11-28'
+		}
+	})
+
+	let owner = user.data.login
+
+	let sha = ""
+
+	try {
+		let resp = await octokit.request(`GET /repos/${owner}/daily/contents/${path}`, {
+			owner,
+			repo: 'daily',
+			path,
+			headers: {
+				'X-GitHub-Api-Version': '2022-11-28'
+			}
+		})
+		sha = resp.data.sha
+
+	} catch (e) { console.error("couldn't get file", path) }
+	console.log(sha, path)
+	await octokit.request(`PUT /repos/${owner}/daily/contents/${path}`, {
+		owner,
+		repo: 'daily',
+		path,
+		message: 'my commit message',
+		content: utoa(content),
+		sha,
+		headers: {
+			'X-GitHub-Api-Version': '2022-11-28'
+		}
+	})
+
+
+
+
+}
+
 export const actions = {
-	verify: async ({ request, cookies }) => {
-		const data = await request.formData()
-		let jwt = data.get("jwt")
-		console.log(jwt)
-		let sub = await verify(jwt)
-		cookies.set("jwt", jwt)
-		cookies.set("sub", sub)
-	},
+
 	submit: async ({ request, cookies }) => {
 		const data = await request.formData()
 		let body = data.get("body")
-		let sub = cookies.get("sub")
-		let jwt = cookies.get("jwt")
-		try {
-			await verify(jwt)
+		let token = cookies.get("access_token")
 
-		} catch (e) {
-			console.error(e)
-			cookies.delete("jwt")
-			return
-		}
-
-		let dir = `build/client/git/${sub}`
-		await git.init({ fs, dir })
-		fs.writeFileSync(`${dir}/${filepath}`, body)
 		const markdown = turndownService.turndown(body)
-		console.log(markdown)
-		fs.writeFileSync(`${dir}/${markdownPath}`, markdown)
-		await git.add({ fs, dir, filepath })
-		await git.add({ fs, dir, filepath: markdownPath })
-		await git.commit({ fs, dir, message: "test", author: { name: "test" } })
-		// using "dumb" git protocol, need to do manual setup with git binary
-		execSync("git update-server-info", { cwd: `${dir}` })
-		execSync(`rm -fr ${dir}.git`)
-		execSync(`git clone --bare ${dir} ${dir}.git`)
-		execSync("git update-server-info", { cwd: `${dir}.git` })
+		try {
+			await writeFile({ token, path: filepath, content: body })
+			await writeFile({ token, path: markdownPath, content: markdown })
+
+		} catch (e) { console.log(e.message) }
+
 	}
 }
 
-export function load({ params, url, cookies }) {
-	let body = ""
-	let sub = cookies.get("sub")
-	let jwt = cookies.get("jwt")
-	let dir = `build/client/git/${sub}`
-	let host = url.host
-	let protocol = url.protocol
-	try {
-		body = fs.readFileSync(`${dir}/${filepath}`).toString()
+const exchange = async (code) => {
+	let form = new FormData()
+	form.set("client_id", PUBLIC_CLIENT_ID)
+	form.set("client_secret", CLIENT_SECRET)
+	form.set("code", code)
 
-	} catch (e) { }
-	return { day, body, sub, host, protocol, jwt }
+	const resp = await fetch("https://github.com/login/oauth/access_token", {
+		method: "POST",
+		headers: {
+			Accept: "application/json"
+		},
+		body: form
+	})
+
+	return resp.json()
+
+}
+
+
+
+export async function load({ params, url, cookies }) {
+	let code = url.searchParams.get("code")
+	let token = await exchange(code)
+	let host = url.host
+
+	let access_token = cookies.get("access_token")
+	const octokit = new Octokit({
+		auth: access_token || token.access_token
+	})
+
+	try {
+		let resp = await octokit.request('POST /user/repos', {
+			name: 'daily',
+			description: 'Daily journal entries',
+			homepage: 'https://journal.vera.pink',
+			'private': false,
+
+		})
+
+	} catch (e) { console.error(e.message) }
+
+	if (code) {
+		cookies.set("access_token", token.access_token)
+
+	}
+	let body = ""
+	try {
+		let user = await octokit.request('GET /user', {
+			headers: {
+				'X-GitHub-Api-Version': '2022-11-28'
+			}
+		})
+
+		let owner = user.data.login
+
+
+		let content = await octokit.request(`GET /repos/${owner}/daily/contents/${filepath}`, {
+			owner,
+			repo: 'daily',
+			path: filepath,
+			headers: {
+				'X-GitHub-Api-Version': '2022-11-28'
+			}
+		})
+		body = atou(content.data.content)
+	} catch (e) { console.error(e) }
+
+
+
+	return { day, body, code, host }
 }
