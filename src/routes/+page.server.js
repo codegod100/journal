@@ -58,7 +58,8 @@ export const actions = {
 		await git.add({ fs, dir, filepath: markdownPath })
 		await git.commit({ fs, dir, message: "test", author: { name: "test" } })
 		// using "dumb" git protocol, need to do manual setup with git binary
-		execSync("git update-server-info", { cwd: dir })
+		execSync(`git clone --bare ${dir} ${dir}.git`)
+		execSync("git update-server-info", { cwd: `${dir}.git` })
 	}
 }
 

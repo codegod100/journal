@@ -54,7 +54,7 @@
 	<form method="POST" action="?/submit">
 		<div>
 			{data.day}
-			| Git clone url: {data.protocol}//{data.host}/git/{data.sub}/.git
+			| Git clone url: {data.protocol}//{data.host}/git/{data.sub}.git
 		</div>
 		<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
 		<!-- <textarea
