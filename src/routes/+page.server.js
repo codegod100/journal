@@ -150,10 +150,7 @@ export async function load({ params, url, cookies }) {
 
 	} catch (e) { console.error("create repo", e.message) }
 
-	if (code) {
-		cookies.set("access_token", token.access_token)
 
-	}
 	let body = ""
 	try {
 		let user = await octokit.request('GET /user', {
