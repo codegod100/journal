@@ -114,10 +114,10 @@ export async function load({ params, url, cookies }) {
 	let code = url.searchParams.get("code")
 	let token = await exchange({ code })
 	let host = url.host
+	console.log({ token })
 	if (token.error) {
 		return { host }
 	}
-	console.log({ token })
 	// cookies.set("refresh", token.refresh_token)
 
 	let access_token = cookies.get("access_token") || token.access_token
