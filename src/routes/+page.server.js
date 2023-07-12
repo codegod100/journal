@@ -113,12 +113,12 @@ const exchange = async ({ code, refresh }) => {
 export async function load({ params, url, cookies }) {
 	let code = url.searchParams.get("code")
 	let token = await exchange({ code })
+	let host = url.host
 	if (token.error) {
 		return { host }
 	}
 	console.log({ token })
 	// cookies.set("refresh", token.refresh_token)
-	let host = url.host
 
 	let access_token = cookies.get("access_token")
 	const octokit = new Octokit({
