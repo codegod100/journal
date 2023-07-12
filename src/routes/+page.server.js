@@ -2,7 +2,7 @@ import dayjs from "dayjs"
 import turndown from "turndown"
 import { redirect } from "@sveltejs/kit"
 import { PUBLIC_CLIENT_ID, PUBLIC_APP_NAME } from "$env/static/public"
-import { CLIENT_SECRET } from "$env/static/private"
+import { CLIENT_SECRET, npm_config_resolution_mode } from "$env/static/private"
 import { Octokit } from "@octokit/core";
 
 function utoa(str) {
@@ -111,18 +111,22 @@ const exchange = async ({ code, refresh }) => {
 
 
 export async function load({ params, url, cookies }) {
-	let code = url.searchParams.get("code")
-	let token = await exchange({ code })
 	let host = url.host
-	console.log({ token })
-	if (token.error) {
-		return { host }
+	let code = url.searchParams.get("code")
+	if (code) {
+		let token = await exchange({ code })
+		console.log({ token })
+		if (token.error) {
+			return { host }
+		}
+		cookies.set("access_token", token.access_token)
 	}
+
 	// cookies.set("refresh", token.refresh_token)
 
-	let access_token = cookies.get("access_token") || token.access_token
+	let access_token = cookies.get("access_token")
 	const octokit = new Octokit({
-		auth: access_token || token.access_token
+		auth: access_token
 	})
 
 	// let resp = await octokit.request('GET /user/installations', {
