@@ -22,7 +22,12 @@
 {:else}
 	<form method="POST" action="?/submit">
 		<div>
-			{data.day}
+			<h3>
+				{data.day}
+
+				UTC
+			</h3>
+			(for simplicity gets date from server before render)
 		</div>
 		<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
 		<!-- <textarea

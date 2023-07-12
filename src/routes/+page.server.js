@@ -1,4 +1,6 @@
 import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
+dayjs.extend(utc)
 import turndown from "turndown"
 import { redirect } from "@sveltejs/kit"
 import { PUBLIC_CLIENT_ID, PUBLIC_APP_NAME } from "$env/static/public"
@@ -14,7 +16,7 @@ function atou(str) {
 }
 
 
-const day = dayjs().format("YYYY-MM-DD")
+const day = dayjs.utc().format("YYYY-MM-DD")
 const filepath = day + ".html"
 const markdownPath = day + ".md"
 const turndownService = new turndown()
