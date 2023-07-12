@@ -15,7 +15,8 @@
 </script>
 
 {#if !data.access_token}
-	<a href="https://github.com/apps/{PUBLIC_APP_NAME}/installations/new"
+	<a
+		href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}"
 		>Login with GitHub</a
 	>
 {/if}
