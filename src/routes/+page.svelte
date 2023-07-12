@@ -5,9 +5,9 @@
 	let conf = {
 		plugins: "advlist lists link",
 		toolbar:
-			"undo redo link linkchecker autolink | styleselect | bold italic | alignleft" +
-			"aligncenter alignright alignjustify | " +
-			"bullist numlist link image",
+			"undo redo link indent outdent | bold italic | alignleft" +
+			"aligncenter alignright alignjustify " +
+			"bullist numlist ",
 		promotion: false,
 		branding: false,
 		menubar: false,
