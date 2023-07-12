@@ -16,7 +16,7 @@
 
 {#if !data.access_token}
 	<a
-		href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}&redirect_uri=http://{data.host}&scope=repo"
+		href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}&scope=repo"
 		>Login with GitHub</a
 	>
 {:else}
