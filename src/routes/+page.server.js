@@ -1,6 +1,7 @@
 import dayjs from "dayjs"
 import turndown from "turndown"
-import { PUBLIC_CLIENT_ID } from "$env/static/public"
+import { redirect } from "@sveltejs/kit"
+import { PUBLIC_CLIENT_ID, PUBLIC_APP_NAME } from "$env/static/public"
 import { CLIENT_SECRET } from "$env/static/private"
 import { Octokit } from "@octokit/core";
 
@@ -112,14 +113,24 @@ const exchange = async ({ code, refresh }) => {
 export async function load({ params, url, cookies }) {
 	let code = url.searchParams.get("code")
 	let token = await exchange({ code })
-	console.log(token)
-	cookies.set("refresh", token.refresh_token)
+	console.log({ token })
+	// cookies.set("refresh", token.refresh_token)
 	let host = url.host
 
 	let access_token = cookies.get("access_token")
 	const octokit = new Octokit({
 		auth: access_token || token.access_token
 	})
+
+	// let resp = await octokit.request('GET /user/installations', {
+	// 	headers: {
+	// 		'X-GitHub-Api-Version': '2022-11-28'
+	// 	}
+	// })
+	// console.log(resp)
+	// if (resp.data.total_count == 0) {
+	// 	throw redirect(302, `https://github.com/apps/${PUBLIC_APP_NAME}/installations/new?setup_url=http://${url.host}`)
+	// }
 
 	try {
 		let resp = await octokit.request('POST /user/repos', {
@@ -130,7 +141,7 @@ export async function load({ params, url, cookies }) {
 
 		})
 
-	} catch (e) { console.error(e.message) }
+	} catch (e) { console.error("create repor", e.message) }
 
 	if (code) {
 		cookies.set("access_token", token.access_token)
@@ -143,6 +154,7 @@ export async function load({ params, url, cookies }) {
 				'X-GitHub-Api-Version': '2022-11-28'
 			}
 		})
+		console.log({ user })
 
 		let owner = user.data.login
 
@@ -156,7 +168,10 @@ export async function load({ params, url, cookies }) {
 			}
 		})
 		body = atou(content.data.content)
-	} catch (e) { console.error(e) }
+	} catch (e) {
+		console.error("submit data", e.message)
+		return { host }
+	}
 
 
 

@@ -16,23 +16,23 @@
 
 {#if !data.access_token}
 	<a
-		href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}"
+		href="https://github.com/login/oauth/authorize?client_id={PUBLIC_CLIENT_ID}&redirect_uri=http://{data.host}&scope=repo"
 		>Login with GitHub</a
 	>
-{/if}
-
-<form method="POST" action="?/submit">
-	<div>
-		{data.day}
-	</div>
-	<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
-	<!-- <textarea
+{:else}
+	<form method="POST" action="?/submit">
+		<div>
+			{data.day}
+		</div>
+		<Editor scriptSrc="tinymce/tinymce.min.js" bind:value={data.body} {conf} />
+		<!-- <textarea
 		cols="60"
 		rows="10"
 		name="body"
 		value={data.body}
 		placeholder="body"
 	/> -->
-	<input type="hidden" name="body" value={data.body} />
-	<input type="submit" />
-</form>
+		<input type="hidden" name="body" value={data.body} />
+		<input type="submit" />
+	</form>
+{/if}
