@@ -120,7 +120,7 @@ export async function load({ params, url, cookies }) {
 	console.log({ token })
 	// cookies.set("refresh", token.refresh_token)
 
-	let access_token = cookies.get("access_token")
+	let access_token = cookies.get("access_token") || token.access_token
 	const octokit = new Octokit({
 		auth: access_token || token.access_token
 	})
