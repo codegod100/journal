@@ -113,6 +113,9 @@ const exchange = async ({ code, refresh }) => {
 export async function load({ params, url, cookies }) {
 	let code = url.searchParams.get("code")
 	let token = await exchange({ code })
+	if (token.error) {
+		return { host }
+	}
 	console.log({ token })
 	// cookies.set("refresh", token.refresh_token)
 	let host = url.host
@@ -141,7 +144,7 @@ export async function load({ params, url, cookies }) {
 
 		})
 
-	} catch (e) { console.error("create repor", e.message) }
+	} catch (e) { console.error("create repo", e.message) }
 
 	if (code) {
 		cookies.set("access_token", token.access_token)
