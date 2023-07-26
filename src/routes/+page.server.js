@@ -16,9 +16,9 @@ function atou(str) {
 }
 
 
-const day = dayjs.utc().format("YYYY-MM-DD")
-const filepath = day + ".html"
-const markdownPath = day + ".md"
+const day = () => dayjs.utc().format("YYYY-MM-DD")
+const filepath = day() + ".html"
+const markdownPath = day() + ".md"
 const turndownService = new turndown()
 
 
@@ -176,10 +176,10 @@ export async function load({ params, url, cookies }) {
 		body = atou(content.data.content)
 	} catch (e) {
 		console.error("submit data", e.message)
-		return { host }
+		return { host,access_token, day: day() }
 	}
 
 
 
-	return { day, body, code, host, access_token }
+	return { day: day(), body, code, host, access_token }
 }
