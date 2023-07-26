@@ -55,7 +55,7 @@ const writeFile = async ({ token, path, content }) => {
 		owner,
 		repo: 'daily',
 		path,
-		message: 'my commit message',
+		message: 'updating journal entry',
 		content: utoa(content),
 		sha,
 		headers: {
