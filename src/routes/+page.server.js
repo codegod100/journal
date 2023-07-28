@@ -17,8 +17,8 @@ function atou(str) {
 
 
 const day = () => dayjs.utc().format("YYYY-MM-DD")
-const filepath = day() + ".html"
-const markdownPath = day() + ".md"
+const filepath = () => day() + ".html"
+const markdownPath = () => day() + ".md"
 const turndownService = new turndown()
 
 
@@ -77,8 +77,8 @@ export const actions = {
 
 		const markdown = turndownService.turndown(body)
 		try {
-			await writeFile({ token, path: filepath, content: body })
-			await writeFile({ token, path: markdownPath, content: markdown })
+			await writeFile({ token, path: filepath(), content: body })
+			await writeFile({ token, path: markdownPath(), content: markdown })
 
 		} catch (e) { console.log(e.message) }
 
@@ -165,10 +165,10 @@ export async function load({ params, url, cookies }) {
 		let owner = user.data.login
 
 
-		let content = await octokit.request(`GET /repos/${owner}/daily/contents/${filepath}`, {
+		let content = await octokit.request(`GET /repos/${owner}/daily/contents/${filepath()}`, {
 			owner,
 			repo: 'daily',
-			path: filepath,
+			path: filepath(),
 			headers: {
 				'X-GitHub-Api-Version': '2022-11-28'
 			}
