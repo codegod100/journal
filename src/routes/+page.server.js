@@ -2,8 +2,7 @@ import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 dayjs.extend(utc)
 import turndown from "turndown"
-import { redirect } from "@sveltejs/kit"
-import { PUBLIC_CLIENT_ID, PUBLIC_APP_NAME } from "$env/static/public"
+import { PUBLIC_CLIENT_ID } from "$env/static/public"
 import { CLIENT_SECRET, npm_config_resolution_mode } from "$env/static/private"
 import { Octokit } from "@octokit/core";
 
@@ -122,6 +121,8 @@ export async function load({ params, url, cookies }) {
 			return { host }
 		}
 		cookies.set("access_token", token.access_token)
+	} else {
+		return {}
 	}
 
 	// cookies.set("refresh", token.refresh_token)
@@ -131,15 +132,6 @@ export async function load({ params, url, cookies }) {
 		auth: access_token
 	})
 
-	// let resp = await octokit.request('GET /user/installations', {
-	// 	headers: {
-	// 		'X-GitHub-Api-Version': '2022-11-28'
-	// 	}
-	// })
-	// console.log(resp)
-	// if (resp.data.total_count == 0) {
-	// 	throw redirect(302, `https://github.com/apps/${PUBLIC_APP_NAME}/installations/new?setup_url=http://${url.host}`)
-	// }
 
 	try {
 		let resp = await octokit.request('POST /user/repos', {
@@ -176,7 +168,7 @@ export async function load({ params, url, cookies }) {
 		body = atou(content.data.content)
 	} catch (e) {
 		console.error("submit data", e.message)
-		return { host,access_token, day: day() }
+		return { host, access_token, day: day() }
 	}
 
 
