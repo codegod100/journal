@@ -121,6 +121,7 @@ export async function load({ params, url, cookies }) {
 		if (token.error) {
 			return { host }
 		}
+		access_token = token.access_token
 		cookies.set("access_token", token.access_token)
 	} else {
 		if (!access_token) { return {} }
