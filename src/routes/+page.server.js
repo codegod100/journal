@@ -114,7 +114,8 @@ const exchange = async ({ code, refresh }) => {
 export async function load({ params, url, cookies }) {
 	let host = url.host
 	let code = url.searchParams.get("code")
-	if (code) {
+	let access_token = cookies.get("access_token")
+	if (code && !access_token) {
 		let token = await exchange({ code })
 		console.log({ token })
 		if (token.error) {
@@ -122,12 +123,10 @@ export async function load({ params, url, cookies }) {
 		}
 		cookies.set("access_token", token.access_token)
 	} else {
-		return {}
+		if (!access_token) { return {} }
 	}
 
-	// cookies.set("refresh", token.refresh_token)
 
-	let access_token = cookies.get("access_token")
 	const octokit = new Octokit({
 		auth: access_token
 	})
