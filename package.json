@@ -29,6 +29,7 @@
     "google-auth-library": "^8.9.0",
     "isomorphic-git": "^1.24.3",
     "octokit": "^3.0.0",
+    "showdown": "^2.1.0",
     "turndown": "^7.1.2"
   }
 }

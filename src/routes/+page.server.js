@@ -5,6 +5,8 @@ import turndown from "turndown"
 import { PUBLIC_CLIENT_ID } from "$env/static/public"
 import { CLIENT_SECRET, npm_config_resolution_mode } from "$env/static/private"
 import { Octokit } from "@octokit/core";
+import showdown from "showdown"
+const converter = new showdown.Converter();
 
 function utoa(str) {
 	return btoa(unescape(encodeURIComponent(str)));
@@ -76,7 +78,6 @@ export const actions = {
 
 		const markdown = turndownService.turndown(body)
 		try {
-			await writeFile({ token, path: filepath(), content: body })
 			await writeFile({ token, path: markdownPath(), content: markdown })
 
 		} catch (e) { console.log(e.message) }
@@ -157,7 +158,7 @@ export async function load({ params, url, cookies }) {
 		let owner = user.data.login
 
 
-		let content = await octokit.request(`GET /repos/${owner}/daily/contents/${filepath()}`, {
+		let content = await octokit.request(`GET /repos/${owner}/daily/contents/${markdownPath()}`, {
 			owner,
 			repo: 'daily',
 			path: filepath(),
@@ -165,7 +166,8 @@ export async function load({ params, url, cookies }) {
 				'X-GitHub-Api-Version': '2022-11-28'
 			}
 		})
-		body = atou(content.data.content)
+		body = converter.makeHtml(atou(content.data.content))
+
 	} catch (e) {
 		console.error("submit data", e.message)
 		return { host, access_token, day: day() }
